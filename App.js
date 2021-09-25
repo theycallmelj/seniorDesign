@@ -10,7 +10,7 @@
  import {Component} from 'react';
  import Slider from '@react-native-community/slider';
 
-
+ import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
  import {
    SafeAreaView,
    ScrollView,
@@ -31,7 +31,7 @@
    LearnMoreLinks,
    ReloadInstructions,
  } from 'react-native/Libraries/NewAppScreen';
- 
+
  
 
 
@@ -67,6 +67,13 @@ array = array.sort(() => Math.random() - 0.5)
     }
     this.setState({photo: this.state.photo+1});
   }
+
+  handleSwipe(direction ,state){
+    const {SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT} = swipeDirections;
+    if(direction !== SWIPE_DOWN){
+      this.changePhoto();
+    }
+  }
   
  
    render(){
@@ -79,8 +86,14 @@ array = array.sort(() => Math.random() - 0.5)
                  style={{ backgroundColor : 'white'}
                  }>
 
+                 <GestureRecognizer
+                 onSwipe={(direction, state) => this.handleSwipe(direction, state)}
+                 
+                 >
+                   
+
                    <View
-                   style={{ height : "75%", justifyContent: 'center' }}
+                   style={{ height : "100%", justifyContent: 'center' }}
                    >
                       <Image
                         style={{
@@ -120,15 +133,9 @@ array = array.sort(() => Math.random() - 0.5)
                   style={{backgroundColor:'green', width: '50%', alignSelf: 'center', justifyContent: 'center', borderRadius: 15}}
                 
                 >
-                  <Button
-                    style={{justifyContent: 'center'}}
-                    title="Next"
-                    color="black"
-                    onPress={()=> this.changePhoto()}
-                    //accessibilityLabel="Learn more about this purple button"
-                  />
+                  
                 </View>
-                
+              </GestureRecognizer>
                </SafeAreaView>
          
          );
