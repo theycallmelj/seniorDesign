@@ -33,7 +33,7 @@
    ReloadInstructions,
  } from 'react-native/Libraries/NewAppScreen';
 import { tsThisType } from '@babel/types';
-
+import codePush from "react-native-code-push";
 
 
 
@@ -88,10 +88,11 @@ array = array.sort(() => Math.random() - 0.5)
 
       let artist = artwork[this.state.photo]['artist'];
       let category = artwork[this.state.photo]['category'];
+      var i = 1;
        this.checkOverflow();
 
 
-        let i = 1;
+        
         
         while(artwork[this.state.photo+i]['artist'] === artist || artwork[this.state.photo+i]['catergory'] === category){
             i++;
@@ -107,10 +108,11 @@ array = array.sort(() => Math.random() - 0.5)
 
         let artist = artwork[this.state.photo]['artist'];
         let category = artwork[this.state.photo]['category'];
+        var i = 1;
          this.checkOverflow();
   
   
-          let i = 1;
+          
           
           while((artwork[this.state.photo+i]['artist'] !== artist && artwork[this.state.photo+i]['catergory'] !== category)){
               i++;
@@ -215,6 +217,7 @@ array = array.sort(() => Math.random() - 0.5)
    },
  
  });
- 
- export default App;
+ let codePushOptions = { checkFrequency: codePush.CheckFrequency.ON_APP_RESUME, installMode: codePush.InstallMode.IMMEDIATE };//should give error in debug
+
+ export default codePush(codePushOptions)(App);
  
