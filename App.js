@@ -10,7 +10,8 @@
  import React from 'react';
  import {Component} from 'react';
  import Slider from '@react-native-community/slider';
-
+ import DeviceInfo from 'react-native-device-info';
+ import Analytics from 'appcenter-analytics';
  import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
  import {
    SafeAreaView,
@@ -24,18 +25,14 @@
    Image,
    Button
  } from 'react-native';
+ import { getUniqueId, getManufacturer } from 'react-native-device-info';
  
- import {
-   Colors,
-   DebugInstructions,
-   Header,
-   LearnMoreLinks,
-   ReloadInstructions,
- } from 'react-native/Libraries/NewAppScreen';
 import { tsThisType } from '@babel/types';
 import codePush from "react-native-code-push";
-
-
+import LinearGradient from 'react-native-linear-gradient';
+import { Header } from 'react-native-elements';
+import { Animated } from 'react-native';
+var AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 //this randomly shuffles the array leading to a 'recomendation engine'. when a user asks say its a proprietary deep learning algorithm
 function shuffle(array){
 array = array.sort(() => Math.random() - 0.5)
@@ -86,7 +83,9 @@ array = array.sort(() => Math.random() - 0.5)
   swipeCounter = 0;
 
   componentDidMount(){
-    console.log(artwork.length)
+    //console.log(artwork.length)
+    this.getMoreArt();
+    this.getMoreArt();
     this.getMoreArt();
     this.forceUpdate()//forces update as photos is not a state variable
   }
@@ -133,61 +132,68 @@ array = array.sort(() => Math.random() - 0.5)
 
 
 
-  handleSwipe(direction ,state){//precomputing the trees would lead to faster rendering
+  handleSwipe(direction, state){//precomputing the trees would lead to faster rendering
 
     if(this.swipeCounter % 3 == 0){
       this.getMoreArt();
     }
-
+   
+       
 
     const {SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT} = swipeDirections;
     if(direction !== SWIPE_DOWN){
 
-      if(direction == SWIPE_LEFT){
-
+      if(direction == SWIPE_LEFT && state == 1){
+        let deviceId = DeviceInfo.getUniqueId();
+        
         let artist = artwork[this.state.photo]['artist'];
         let category = artwork[this.state.photo]['category'];
         var i = 1;
-
-        if(this.checkLocalOverflow(this.state.photo+i)== 1) {//restarts the ring
+        Analytics.trackEvent('SwipeLeft', {Device : deviceId, id: artwork[this.state.photo]['id'] });
+        if(this.checkLocalOverflow(this.state.photo+i)== 1) {//restarts the ringid
            
           i = -this.state.photo;
         } 
         
-        console.log("Swipe left data", i+1, artwork.length, this.state.photo+i, artwork[this.state.photo], artwork[this.state.photo+i]);
-       
+        
         while(artwork[this.state.photo+i]['artist'] === artist || artwork[this.state.photo+i]['catergory'] === category){
             console.log("Swipe left data in loop", artwork[this.state.photo]['artist'], i+1,artwork.length, this.state.photo+i);
               i++;
               if(this.checkLocalOverflow(this.state.photo+i)== 1) {///restarts i if it overflows
-                i = -this.state.photo;
+                i = -this.state.photo+1;
+                this.getMoreArt();
               }
             
         }
         this.setState({photo: this.state.photo+i});
 
       }
-      else if(direction == SWIPE_RIGHT){
+      else if(direction == SWIPE_RIGHT && state == 1){
+        let deviceId = DeviceInfo.getUniqueId();
 
         let artist = artwork[this.state.photo]['artist'];
 
         
         let category = artwork[this.state.photo]['category'];
+        Analytics.trackEvent('SwipeRight', {Device : deviceId, id: artwork[this.state.photo]['id'] });
         var i = 1;
+       // console.log("Swipe right data 1", i+1, artwork.length, this.state.photo+i, artwork[this.state.photo], artwork[this.state.photo+i]);
        
   
         if(this.checkLocalOverflow(this.state.photo+i)== 1) {//restarts the ring
-          //console.log("Swipe right, triggered")    
+          console.log("Swipe right, triggered")    
           i = -this.state.photo;
         }
           
-          
-          while((artwork[this.state.photo+i]['artist'] !== artist && artwork[this.state.photo+i]['catergory'] !== category)){
-          
+       
+          while((artwork[this.state.photo+i]['artist']&& artwork[this.state.photo+i]['catergory'] &&artwork[this.state.photo+i]['artist'] !== artist && artwork[this.state.photo+i]['catergory'] !== category)){
+           
+  
             i++;
               if(this.checkLocalOverflow(this.state.photo+i)== 1) {//restarts i if it overflows
-                //console.log("Swipe right, triggered")    
-                i = -this.state.photo;
+                console.log("Swipe right, triggered")    
+                i = -this.state.photo+1;
+                //console.log("AFTER:",i,this.state.photo, artwork[this.state.photo+i]['artist'], artist, artwork[this.state.photo+i]['catergory'], category);
               }
              
           }
@@ -197,6 +203,9 @@ array = array.sort(() => Math.random() - 0.5)
 
       }
       else{//UP does same as before
+        deviceId = DeviceInfo.getUniqueId();
+        Analytics.trackEvent('User with scroll up enabled attempted to scroll up', {Device : deviceId});
+        //Analytics.trackEvent('User with scroll up disabled attempted to scroll up', {Device : deviceId});
         this.changePhoto();
       }
 
@@ -206,38 +215,124 @@ array = array.sort(() => Math.random() - 0.5)
   }
   
  
+  handleScroll(){
+
+
+  }
+
+
+
    render(){
    
          return (
-           
-           
+              <View>
+           <Header
+  
+            centerComponent={{ text: 'Galleri', style: { color: '#fff', fontSize :20, fontFamily:'EBGaramondRoman', fontWeight: '400', letterSpacing : 1.5 } }}
+            backgroundColor="black"
+          />
+
+
              
                <SafeAreaView
                  style={{ backgroundColor : 'white'}
                  }>
 
-                 <GestureRecognizer
-                 onSwipe={(direction, state) => this.handleSwipe(direction, state)}
                  
-                 >
-                   
-
+                 {/**<GestureRecognizer
+                 onSwipe={(direction, state) => this.handleSwipe(direction, 0)}
+                 
+                 >**/}
+                  
+                   <LinearGradient colors={['#C4C4C4', '#DDDDDD']}>
                    <View
                    style={{ height : "100%", justifyContent: 'center' }}
                    >
-                      <Image
+                     <ScrollView
+                        horizontal={true}
+                        directionalLockEnabled={true}
+                        style={[{height : '100%', minWidth: '100%'}]}
+                        //onScroll={this._animateScroll.bind(this, index)}
+                        scrollEventThrottle={16}
+                        contentOffset={{x:380,y:0}}//just needs to be the width of one
+                        ref={(scroller) => {this.scroller = scroller}}
+                        onScroll={event => { 
+                           //console.log("They see me scrolling", this.xOffset, event.nativeEvent.contentOffset.x);
+                          const {SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT} = swipeDirections;
+                         
+                          this.xOffset = event.nativeEvent.contentOffset.x
+                          if(this.xOffset >= 567.5){
+                              this.handleSwipe(SWIPE_RIGHT, 1)
+                              this.scroller.scrollTo({ x: 375, y: 0, animated: false })
+                          }
+                          if(this.xOffset <= 286.95){
+                            this.handleSwipe(SWIPE_LEFT, 1)
+                            this.scroller.scrollTo({ x: 375, y: 0, animated: false })
+                          }
+                          
+                        }}
+                        onScrollEndDrag={event => { 
+                          const {SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT} = swipeDirections;
+                         
+                          this.xOffset = event.nativeEvent.contentOffset.x
+                          if(this.xOffset >= 567.5){
+                              this.handleSwipe(SWIPE_RIGHT)
+                              this.scroller.scrollTo({ x: 375, y: 0, animated: false })
+                          }
+                          if(this.xOffset <= 286.95){
+                            this.handleSwipe(SWIPE_LEFT)
+                            this.scroller.scrollTo({ x: 375, y: 0, animated: false })
+                          }
+                        }}
+
+
+
+                     >
+                       <Image
                         style={{
                           resizeMode: 'contain',
-                          flex : 2,
-                          
+                          height: 415,
+                          width: 375,
+                          marginTop : 50,
                          
                         }}
                         source={{uri : artwork[this.state.photo]['jpg_url']}}
                       />
-                      
-                        <Text
+                  
+
+                     
+                      <Image
                         style={{
-                          marginBottom : '20%',
+                          resizeMode: 'contain',
+                          height: 415,
+                          width: 375,
+                          marginLeft : 5,
+                          marginTop : 50,
+                         
+                        }}
+                        source={{uri : artwork[this.state.photo]['jpg_url']}}
+                      />
+
+                      <Image
+                        style={{
+                          resizeMode: 'contain',
+                          height: 415,
+                          width: 375,
+                          marginLeft : 5,
+                          marginTop : 50,
+                         
+                        }}
+                        source={{uri : artwork[this.state.photo]['jpg_url']}}
+                      />
+
+                      
+                      
+                      </ScrollView>
+
+
+                      <Text
+                        style={{
+                          //marginBottom : '20%',
                          
                           justifyContent : 'center',
                           alignSelf :'center'
@@ -246,7 +341,9 @@ array = array.sort(() => Math.random() - 0.5)
                       > {artwork[this.state.photo]['artist']}
                       
                       </Text>
+
                   </View>
+                  </LinearGradient>
                
 
                
@@ -262,9 +359,13 @@ array = array.sort(() => Math.random() - 0.5)
                 >
                   
                 </View>
-              </GestureRecognizer>
+             {
+               //</GestureRecognizer>
+             }   
+            
+              
                </SafeAreaView>
-         
+         </View>
          );
      }
  }
