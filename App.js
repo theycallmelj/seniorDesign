@@ -258,9 +258,10 @@ array = array.sort(() => Math.random() - 0.5)
                         ref={(scroller) => {this.scroller = scroller}}
                         onScroll={event => { 
                            //console.log("They see me scrolling", this.xOffset, event.nativeEvent.contentOffset.x);
-                          const {SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT} = swipeDirections;
+                          //const {SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT} = swipeDirections;
                          
                           this.xOffset = event.nativeEvent.contentOffset.x
+                          /*
                           if(this.xOffset >= 567.5){
                               this.handleSwipe(SWIPE_RIGHT, 1)
                               this.scroller.scrollTo({ x: 375, y: 0, animated: false })
@@ -269,6 +270,8 @@ array = array.sort(() => Math.random() - 0.5)
                             this.handleSwipe(SWIPE_LEFT, 1)
                             this.scroller.scrollTo({ x: 375, y: 0, animated: false })
                           }
+                          */
+
                           
                         }}
                         onScrollEndDrag={event => { 
@@ -277,11 +280,11 @@ array = array.sort(() => Math.random() - 0.5)
                           this.xOffset = event.nativeEvent.contentOffset.x
                           if(this.xOffset >= 567.5){
                               this.handleSwipe(SWIPE_RIGHT)
-                              this.scroller.scrollTo({ x: 375, y: 0, animated: false })
+                              this.scroller.scrollTo({ x: 375, y: 0, animated: true })
                           }
                           if(this.xOffset <= 286.95){
                             this.handleSwipe(SWIPE_LEFT)
-                            this.scroller.scrollTo({ x: 375, y: 0, animated: false })
+                            this.scroller.scrollTo({ x: 375, y: 0, animated: true })
                           }
                         }}
 
@@ -296,11 +299,11 @@ array = array.sort(() => Math.random() - 0.5)
                           marginTop : 50,
                          
                         }}
-                        source={{uri : artwork[this.state.photo]['jpg_url']}}
+                        source={require("./assets/pics/Like.png")}
                       />
                   
 
-                     
+                     <View>
                       <Image
                         style={{
                           resizeMode: 'contain',
@@ -312,6 +315,7 @@ array = array.sort(() => Math.random() - 0.5)
                         }}
                         source={{uri : artwork[this.state.photo]['jpg_url']}}
                       />
+                      </View>
 
                       <Image
                         style={{
@@ -322,7 +326,7 @@ array = array.sort(() => Math.random() - 0.5)
                           marginTop : 50,
                          
                         }}
-                        source={{uri : artwork[this.state.photo]['jpg_url']}}
+                        source={require("./assets/pics/Dislike.png")}
                       />
 
                       
