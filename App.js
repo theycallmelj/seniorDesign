@@ -13,6 +13,8 @@
  import DeviceInfo from 'react-native-device-info';
  import Analytics from 'appcenter-analytics';
  import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
+ import InAppReview from 'react-native-in-app-review';
+
  import {
    SafeAreaView,
    ScrollView,
@@ -26,13 +28,19 @@
    Button
  } from 'react-native';
  import { getUniqueId, getManufacturer } from 'react-native-device-info';
- 
+ import SplashScreen from 'react-native-splash-screen'
 import { tsThisType } from '@babel/types';
 import codePush from "react-native-code-push";
 import LinearGradient from 'react-native-linear-gradient';
 import { Header } from 'react-native-elements';
 import { Animated } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import PagerView from 'react-native-pager-view';
+
+import Dots from 'react-native-dots-pagination';
+import FastImage from 'react-native-fast-image'
 var AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
+
 //this randomly shuffles the array leading to a 'recomendation engine'. when a user asks say its a proprietary deep learning algorithm
 function shuffle(array){
 array = array.sort(() => Math.random() - 0.5)
@@ -44,12 +52,16 @@ array = array.sort(() => Math.random() - 0.5)
      this.state = {
        slider : 5,
        photo : 0,
+       onboarding : 1,
      };
      
    }
 
 
    getMoreArt= () =>{
+
+    //
+
     fetch('https://ql0hem8ot0.execute-api.us-east-1.amazonaws.com/prod/a', {
       method: 'GET'
    })
@@ -67,6 +79,16 @@ array = array.sort(() => Math.random() - 0.5)
         website_url: responseJson[i].website_url,
 
       })
+
+
+      FastImage.preload([
+        {
+            uri:responseJson[i].jpg_url,
+            priority: FastImage.priority.high
+        }]);
+
+
+
       //artwork[artwork.length+1]=responseJson[i];
       //console.log("after:",  artwork[i+10], responseJson[i]);
       
@@ -78,12 +100,65 @@ array = array.sort(() => Math.random() - 0.5)
    .catch((error) => {
       console.error(error);
    });
+    
    }
+  
 
   swipeCounter = 0;
 
+  storeData = async (value, key) => {
+    console.log("here")
+    try {
+      await AsyncStorage.setItem(key, value)
+      this.setState({onboarding: 0});
+      console.log("here2")
+    } catch (e) {
+      // saving error
+      console.log("Error", e);
+    }
+
+  }
+
+
+
+  getData = async (key) => {
+    const value = await AsyncStorage.getItem(key)
+    //console.log("What is read?", value, value !== null);
+    if(value !== null) {
+        // value previously stored
+      this.setState({onboarding: 0})
+    }
+        
+        
+   }
+
+
+
+
+
+   addUser= () =>{
+
+    //this adds the user
+    let url = 'https://3i1zkbil0e.execute-api.us-east-1.amazonaws.com/prod?id=' + DeviceInfo.getUniqueId();
+    fetch(url, {
+      method: 'GET'
+   })
+   .then((response) => response.json())
+
+
+  }
+
+
+
+
   componentDidMount(){
     //console.log(artwork.length)
+    SplashScreen.hide();
+
+
+    //console.log("device", DeviceInfo.getUniqueId())
+    this.getData("@galleriOnboarding");
+    this.addUser();
     this.getMoreArt();
     this.getMoreArt();
     this.getMoreArt();
@@ -137,7 +212,19 @@ array = array.sort(() => Math.random() - 0.5)
     if(this.swipeCounter % 3 == 0){
       this.getMoreArt();
     }
-   
+
+  
+    if( (direction == SWIPE_LEFT  || direction == SWIPE_RIGHT ) && this.swipeCounter < 10 && this.getData("ten")){//new code
+      this.setState({photo: this.state.photo+1});
+      this.swipeCounter++;
+      return;
+    }
+
+    if(this.swipeCounter == 10){
+      InAppReview.RequestInAppReview()
+      this.storeData("done", "ten");
+    }
+    
        
 
     const {SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT} = swipeDirections;
@@ -214,161 +301,320 @@ array = array.sort(() => Math.random() - 0.5)
     this.swipeCounter++;
   }
   
+
+  App = () => {
+    return(
+      <SafeAreaView
+      style={{ backgroundColor : 'white'}
+      }>
+
+      
+      {/**<GestureRecognizer
+      onSwipe={(direction, state) => this.handleSwipe(direction, 0)}
+      
+      >**/}
+       
+        <LinearGradient colors={['#C4C4C4', '#DDDDDD']}>
+        <View
+        style={{ height : "100%", justifyContent: 'center', alignItems:'center' }}
+        >
+          <ScrollView
+             horizontal={true}
+             directionalLockEnabled={true}
+             style={[{height : '100%', minWidth: '100%', alignSelf:'center'}]}
+
+             contentContainerStyle={{maxWidth:750, justifyContent:'center', alignItems:'center', height : '75%'}}
+             //onScroll={this._animateScroll.bind(this, index)}
+             decelerationRate={'fast'}
+             //snapToInterval={375}
+            // snapToInterval={375} //your element width
+            disableIntervalMomentum={true}
+            snapToAlignment={"center"}
+             scrollEventThrottle={16}
+             contentOffset={{x:187.5,y:0}}//just needs to be the width of one
+             ref={(scroller) => {this.scroller = scroller}}
+             onScroll={event => { 
+                //console.log("They see me scrolling", this.xOffset, event.nativeEvent.contentOffset.x);
+               const {SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT} = swipeDirections;
+              
+               this.xOffset = event.nativeEvent.contentOffset.x
+             
+               if(this.xOffset >= 567.5){
+                this.scroller.scrollEnabled
+                   //this.handleSwipe(SWIPE_RIGHT, 1)
+                   //this.scroller.scrollTo({ x: 375, y: 0, animated: false })
+               }
+               if(this.xOffset <= 286.95){
+                 //this.handleSwipe(SWIPE_LEFT, 1)
+                 //this.scroller.scrollTo({ x: 375, y: 0, animated: false })
+               }
+              
+              
+             }}
+
+             onMomentumScrollEnd={event => { 
+              //console.log("They see me scrolling", this.xOffset, event.nativeEvent.contentOffset.x);
+             const {SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT} = swipeDirections;
+            
+             this.xOffset = event.nativeEvent.contentOffset.x
+             //console.log("XOman", event.nativeEvent)
+           
+            
+           }}
+
+
+             onScrollEndDrag={event => { 
+               const {SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT} = swipeDirections;
+              
+               this.xOffset = event.nativeEvent.contentOffset.x
+
+               console.log("XO", event.nativeEvent)
+               
+               if(this.xOffset >= 200){
+                   this.handleSwipe(SWIPE_RIGHT)
+                   this.scroller.scrollTo({ x: 187.5, y: 0, animated: true })
+               }
+               if(this.xOffset <= 150){
+                 this.handleSwipe(SWIPE_LEFT)
+                 this.scroller.scrollTo({ x: 187.5, y: 0, animated: true })
+               }
+
+              
+             }}
+
+
+
+          >
+            <Image
+             style={{
+               resizeMode: 'contain',
+               height: 415,
+               width: 375,
+               marginTop : 50,
+              
+             }}
+             source={require("./assets/pics/Like.png")}
+           />
+       
+
+          <View style={{height: 415,
+               width: 375, justifyContent:'center', alignSelf: 'center'}}>
+           <Image
+             style={{
+               resizeMode: 'contain',
+               height: 415,
+               width: 375,
+               
+               marginTop : 50,
+              
+             }}
+             resizeMode={FastImage.resizeMode.contain}
+             source={{uri : artwork[this.state.photo]['jpg_url']}}
+           />
+           </View>
+
+
+           <View style={{height: 415,
+               width: 375,}}>
+           <Image
+             style={{
+               resizeMode: 'contain',
+               height: 415,
+               width: 375,
+               
+               marginTop : 50,
+              
+             }}
+             source={require("./assets/pics/Dislike.png")}
+           />
+          </View>
+           
+           
+           </ScrollView>
+
+
+           <Text
+             style={{
+               //marginBottom : '20%',
+              
+               justifyContent : 'center',
+               alignSelf :'center'
+              
+             }}
+           > {artwork[this.state.photo]['artist']}
+           
+           </Text>
+
+       </View>
+       </LinearGradient>
+    
+
+    
+
+       
+
+       
+   
+
+     <View
+       style={{backgroundColor:'green', width: '50%', alignSelf: 'center', justifyContent: 'center', borderRadius: 15}}
+     
+     >
+       
+     </View>
+  {
+    //</GestureRecognizer>
+  }   
  
-  handleScroll(){
+   
+    </SafeAreaView>
 
 
+    );
   }
+
+
+  
+  
+
+
+
+
+  onboardSwipeRight(){
+    console.log('render2', this.state.onboarding);
+    if(this.state.onboarding < 3){
+      this.setState({onboarding:this.state.onboarding+1})
+    }
+    else{
+      this.storeData("done" ,"@galleriOnboarding");
+    }
+  }
+  onboardSwipeLeft(){
+    console.log('render', this.state.onboarding-1);
+    if(this.state.onboarding > 1){
+      this.setState({onboarding:this.state.onboarding-1})
+    }
+  }
+
+
+
+  
+
+  Onboarding = () =>{
+
+ return(
+
+
+
+
+
+
+  <LinearGradient colors={['#C4C4C4', '#DDDDDD']}>
+  <GestureRecognizer
+      onSwipeRight={()=>this.onboardSwipeRight()}
+      onSwipeLeft={()=> this.onboardSwipeLeft()}
+      
+      >
+    {this.state.onboarding === 1 ?
+    <View
+    style={{ height : "100%", justifyContent: 'center',}}
+    >
+       
+       
+       
+        <View style={{alignItems: 'center',  marginTop: -100 }}>
+        <Text style={{fontSize : 20, fontFamily:'EBGaramondRoman',}}>Welcome to</Text>
+        <Text style={{fontWeight: '800', fontSize : 50,fontFamily:'EBGaramondRoman'}}>Galleri</Text>
+        </View>
+
+
+        <View style={{top: 200}}>
+        <Dots length={3} active={this.state.onboarding-1} activeColor='black' passiveColor='#505050' />
+        </View>
+       
+    </View>
+    :null
+  }
+
+{this.state.onboarding === 2 ?
+    <View
+    style={{ height : "100%", justifyContent: 'center'}}
+    >
+       
+       
+       <Image
+             style={{
+               resizeMode: 'contain',
+               height: 415,
+               width: 375,
+               marginTop : -100,
+              
+             }}
+             source={require("./assets/pics/1.png")}
+           />
+        <Dots length={3} active={this.state.onboarding-1} activeColor='black' passiveColor='#505050' />
+        
+       
+    </View>
+    :null
+  }
+
+{this.state.onboarding === 3?
+    <View
+    style={{ height : "100%", justifyContent: 'center',}}
+    >
+       
+       
+       
+       <Image
+             style={{
+               resizeMode: 'contain',
+               height: 415,
+               width: 375,
+               marginTop : -100,
+              
+             }}
+             source={require("./assets/pics/2.png")}
+           />
+        <Dots length={3} active={this.state.onboarding-1} activeColor='black' passiveColor='#505050' />
+        
+       
+    </View>
+    :null
+  }
+
+
+
+
+
+
+</GestureRecognizer>
+  </LinearGradient>
+
+  
+ )
+ ;
+  }
+
+
+
+
 
 
 
    render(){
    
          return (
-              <View>
+          <View>
            <Header
   
             centerComponent={{ text: 'Galleri', style: { color: '#fff', fontSize :20, fontFamily:'EBGaramondRoman', fontWeight: '400', letterSpacing : 1.5 } }}
             backgroundColor="black"
           />
 
-
-             
-               <SafeAreaView
-                 style={{ backgroundColor : 'white'}
-                 }>
-
-                 
-                 {/**<GestureRecognizer
-                 onSwipe={(direction, state) => this.handleSwipe(direction, 0)}
-                 
-                 >**/}
-                  
-                   <LinearGradient colors={['#C4C4C4', '#DDDDDD']}>
-                   <View
-                   style={{ height : "100%", justifyContent: 'center' }}
-                   >
-                     <ScrollView
-                        horizontal={true}
-                        directionalLockEnabled={true}
-                        style={[{height : '100%', minWidth: '100%'}]}
-                        //onScroll={this._animateScroll.bind(this, index)}
-                        scrollEventThrottle={16}
-                        contentOffset={{x:380,y:0}}//just needs to be the width of one
-                        ref={(scroller) => {this.scroller = scroller}}
-                        onScroll={event => { 
-                           //console.log("They see me scrolling", this.xOffset, event.nativeEvent.contentOffset.x);
-                          //const {SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT} = swipeDirections;
-                         
-                          this.xOffset = event.nativeEvent.contentOffset.x
-                          /*
-                          if(this.xOffset >= 567.5){
-                              this.handleSwipe(SWIPE_RIGHT, 1)
-                              this.scroller.scrollTo({ x: 375, y: 0, animated: false })
-                          }
-                          if(this.xOffset <= 286.95){
-                            this.handleSwipe(SWIPE_LEFT, 1)
-                            this.scroller.scrollTo({ x: 375, y: 0, animated: false })
-                          }
-                          */
-
-                          
-                        }}
-                        onScrollEndDrag={event => { 
-                          const {SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT} = swipeDirections;
-                         
-                          this.xOffset = event.nativeEvent.contentOffset.x
-                          if(this.xOffset >= 567.5){
-                              this.handleSwipe(SWIPE_RIGHT)
-                              this.scroller.scrollTo({ x: 375, y: 0, animated: true })
-                          }
-                          if(this.xOffset <= 286.95){
-                            this.handleSwipe(SWIPE_LEFT)
-                            this.scroller.scrollTo({ x: 375, y: 0, animated: true })
-                          }
-                        }}
-
-
-
-                     >
-                       <Image
-                        style={{
-                          resizeMode: 'contain',
-                          height: 415,
-                          width: 375,
-                          marginTop : 50,
-                         
-                        }}
-                        source={require("./assets/pics/Like.png")}
-                      />
-                  
-
-                     <View>
-                      <Image
-                        style={{
-                          resizeMode: 'contain',
-                          height: 415,
-                          width: 375,
-                          marginLeft : 5,
-                          marginTop : 50,
-                         
-                        }}
-                        source={{uri : artwork[this.state.photo]['jpg_url']}}
-                      />
-                      </View>
-
-                      <Image
-                        style={{
-                          resizeMode: 'contain',
-                          height: 415,
-                          width: 375,
-                          marginLeft : 5,
-                          marginTop : 50,
-                         
-                        }}
-                        source={require("./assets/pics/Dislike.png")}
-                      />
-
-                      
-                      
-                      </ScrollView>
-
-
-                      <Text
-                        style={{
-                          //marginBottom : '20%',
-                         
-                          justifyContent : 'center',
-                          alignSelf :'center'
-                         
-                        }}
-                      > {artwork[this.state.photo]['artist']}
-                      
-                      </Text>
-
-                  </View>
-                  </LinearGradient>
-               
-
-               
-
-                  
-
-                  
-              
-
-                <View
-                  style={{backgroundColor:'green', width: '50%', alignSelf: 'center', justifyContent: 'center', borderRadius: 15}}
-                
-                >
-                  
-                </View>
-             {
-               //</GestureRecognizer>
-             }   
+           
+             {this.state.onboarding > 0 ? this.Onboarding() : this.App()}
             
-              
-               </SafeAreaView>
          </View>
          );
      }
