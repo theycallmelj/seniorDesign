@@ -53,6 +53,7 @@ array = array.sort(() => Math.random() - 0.5)
        slider : 5,
        photo : 0,
        onboarding : 1,
+       ten: 0,
      };
      
    }
@@ -67,7 +68,7 @@ array = array.sort(() => Math.random() - 0.5)
    })
    .then((response) => response.json())
    .then((responseJson) => {
-    //console.log("before:", artwork);
+    console.log("before:", responseJson);
     var i;
     for (i = 0; i < Object.keys(responseJson).length; i++) { //12 is known from lambda
       
@@ -110,7 +111,10 @@ array = array.sort(() => Math.random() - 0.5)
     console.log("here")
     try {
       await AsyncStorage.setItem(key, value)
-      this.setState({onboarding: 0});
+      if(key === "@galleriOnboarding"){
+        this.setState({onboarding: 0});
+      }
+      console.log("Is 10 being written", key);
       console.log("here2")
     } catch (e) {
       // saving error
@@ -124,12 +128,20 @@ array = array.sort(() => Math.random() - 0.5)
   getData = async (key) => {
     const value = await AsyncStorage.getItem(key)
     //console.log("What is read?", value, value !== null);
-    if(value !== null) {
+    if(value !== null && key ==="@galleriOnboarding")  {
         // value previously stored
       this.setState({onboarding: 0})
+      return true;
     }
-        
-        
+     else if(value !== null)   {
+      //console.log("Is 10 being read", key);
+       this.setState({ten: 1})
+       if(this.swipeCounter < 8){
+        //console.log("TENSTEST")
+        this.setState({photo: 10});
+      }
+     }
+    
    }
 
 
@@ -158,10 +170,19 @@ array = array.sort(() => Math.random() - 0.5)
 
     //console.log("device", DeviceInfo.getUniqueId())
     this.getData("@galleriOnboarding");
+    this.getData("@ten");
     this.addUser();
     this.getMoreArt();
     this.getMoreArt();
     this.getMoreArt();
+
+
+    
+
+
+
+
+
     this.forceUpdate()//forces update as photos is not a state variable
   }
 
@@ -212,17 +233,21 @@ array = array.sort(() => Math.random() - 0.5)
     if(this.swipeCounter % 3 == 0){
       this.getMoreArt();
     }
-
+    //console.log("Is 10 being read", this.getData("ten"));
   
-    if( (direction == SWIPE_LEFT  || direction == SWIPE_RIGHT ) && this.swipeCounter < 10 && this.getData("ten")){//new code
+    if( (direction == SWIPE_LEFT  || direction == SWIPE_RIGHT ) && (this.swipeCounter < 10 && this.state.ten != 1)){//new code
       this.setState({photo: this.state.photo+1});
       this.swipeCounter++;
       return;
     }
+    if(this.swipeCounter == 9){
+      this.storeData("done", "@ten");
+      this.setState({ten : 1})
+    }
 
     if(this.swipeCounter == 10){
       InAppReview.RequestInAppReview()
-      this.storeData("done", "ten");
+     
     }
     
        
