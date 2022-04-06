@@ -54,13 +54,14 @@ array = array.sort(() => Math.random() - 0.5)
        photo : 0,
        onboarding : 1,
        ten: 0,
+       update: 0,
      };
      
    }
 
 
    getMoreArt= () =>{
-
+    
     //
 
     fetch('https://ql0hem8ot0.execute-api.us-east-1.amazonaws.com/prod/a', {
@@ -68,7 +69,7 @@ array = array.sort(() => Math.random() - 0.5)
    })
    .then((response) => response.json())
    .then((responseJson) => {
-    console.log("before:", responseJson);
+    //console.log("before:", responseJson);
     var i;
     for (i = 0; i < Object.keys(responseJson).length; i++) { //12 is known from lambda
       
@@ -94,6 +95,11 @@ array = array.sort(() => Math.random() - 0.5)
       //console.log("after:",  artwork[i+10], responseJson[i]);
       
     }
+    if(this.state.photo == 10 && this.state.ten == 1 && this.state.update !=1){
+      console.log("troll?");
+       this.setState({update : 1})
+       //this.forceUpdate();
+     }
     //console.log("after:",  artwork[10], responseJson[0]);
     //console.log("after:", );
     //console.log("after:", responseJson.leng th);
@@ -101,7 +107,8 @@ array = array.sort(() => Math.random() - 0.5)
    .catch((error) => {
       console.error(error);
    });
-    
+   
+    //this.forceUpdate()
    }
   
 
@@ -139,6 +146,7 @@ array = array.sort(() => Math.random() - 0.5)
        if(this.swipeCounter < 8){
         //console.log("TENSTEST")
         this.setState({photo: 10});
+        this.getMoreArt();
       }
      }
     
@@ -424,6 +432,8 @@ array = array.sort(() => Math.random() - 0.5)
 
           <View style={{height: 415,
                width: 375, justifyContent:'center', alignSelf: 'center'}}>
+          
+          {this.state.photo <10 || this.state.photo > 10 || (this.state.photo == 10 && this.state.ten == 1 && this.state.update==1)?
            <Image
              style={{
                resizeMode: 'contain',
@@ -434,10 +444,11 @@ array = array.sort(() => Math.random() - 0.5)
               
              }}
              resizeMode={FastImage.resizeMode.contain}
-             source={{uri : artwork[this.state.photo]['jpg_url']}}
+             source={{ uri : artwork[this.state.photo]['jpg_url']}}
            />
+            :null}
            </View>
-
+            
 
            <View style={{height: 415,
                width: 375,}}>
@@ -457,7 +468,7 @@ array = array.sort(() => Math.random() - 0.5)
            
            </ScrollView>
 
-
+          {artwork[this.state.photo]?
            <Text
              style={{
                //marginBottom : '20%',
@@ -468,7 +479,8 @@ array = array.sort(() => Math.random() - 0.5)
              }}
            > {artwork[this.state.photo]['artist']}
            
-           </Text>
+           </Text>:
+           null}
 
        </View>
        </LinearGradient>
