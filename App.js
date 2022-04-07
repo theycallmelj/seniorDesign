@@ -25,14 +25,15 @@
    View,
    Dimensions,
    Image,
-   Button
+   Button,
+   Pressable
  } from 'react-native';
  import { getUniqueId, getManufacturer } from 'react-native-device-info';
  import SplashScreen from 'react-native-splash-screen'
 import { tsThisType } from '@babel/types';
 import codePush from "react-native-code-push";
 import LinearGradient from 'react-native-linear-gradient';
-import { Header } from 'react-native-elements';
+import { Header, Overlay } from 'react-native-elements';
 import { Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PagerView from 'react-native-pager-view';
@@ -55,6 +56,7 @@ array = array.sort(() => Math.random() - 0.5)
        onboarding : 1,
        ten: 0,
        update: 0,
+       tap : 0,
      };
      
    }
@@ -430,8 +432,10 @@ array = array.sort(() => Math.random() - 0.5)
            />
        
 
-          <View style={{height: 415,
-               width: 375, justifyContent:'center', alignSelf: 'center'}}>
+          <Pressable style={{height: 415,
+               width: 375, justifyContent:'center', alignSelf: 'center'}}
+               
+               onPress={()=>{this.setState({tap :1})}}>
           
           {this.state.photo <10 || this.state.photo > 10 || (this.state.photo == 10 && this.state.ten == 1 && this.state.update==1)?
            <Image
@@ -443,15 +447,67 @@ array = array.sort(() => Math.random() - 0.5)
                marginTop : 50,
               
              }}
+             onPress={()=>{this.setState({tap :1})}}
              resizeMode={FastImage.resizeMode.contain}
              source={{ uri : artwork[this.state.photo]['jpg_url']}}
            />
             :null}
-           </View>
+           </Pressable>
             
+            <Overlay visible={this.state.tap == 1} onBackdropPress={()=>{this.setState({tap :0})}}
+            
+            overlayStyle={{backgroundColor: 'black', borderRadius:30}}
+            >
+              <View style={{height: 395,
+               width: 325,
+               backgroundColor:'black'
+              }}
+               >
+                {artwork[this.state.photo]?
+                <View>
+                  <Text
+                    style={{
+                      //marginBottom : '20%',
+                      
+                      //justifyContent : 'center',
+                      //alignSelf :'center'
+                      color:'white',
+                      fontSize:24,
+                      fontWeight: "600",
+                      marginTop:50
+                    }}
+                  > {artwork[this.state.photo]['artist'].replace(/-/g,' ').replace(/(^\w{1})|(\s+\w{1})/g, letter => letter.toUpperCase())}
+                  
+                  </Text>
+
+                  <Text
+                    style={{
+                      //marginBottom : '20%',
+                      
+                      //justifyContent : 'center',
+                      //alignSelf :'center'
+                      color:'white',
+                      fontSize:24,
+                      fontWeight: "800",
+                      marginTop:50
+                    }}
+                  > {artwork[this.state.photo]['website_url'].replace("https://artsy.net/artwork/", "").replace(/-/g,' ').replace(/(^\w{1})|(\s+\w{1})/g, letter => letter.toUpperCase()).replace(artwork[this.state.photo]['artist'].replace(/-/g,' ').replace(/(^\w{1})|(\s+\w{1})/g, letter => letter.toUpperCase()), "")}
+
+
+                  </Text>
+
+
+                </View>
+                  :
+                  null}
+              </View>
+              
+            </Overlay>
 
            <View style={{height: 415,
-               width: 375,}}>
+               width: 375,
+              }}
+               >
            <Image
              style={{
                resizeMode: 'contain',
@@ -468,19 +524,7 @@ array = array.sort(() => Math.random() - 0.5)
            
            </ScrollView>
 
-          {artwork[this.state.photo]?
-           <Text
-             style={{
-               //marginBottom : '20%',
-              
-               justifyContent : 'center',
-               alignSelf :'center'
-              
-             }}
-           > {artwork[this.state.photo]['artist']}
-           
-           </Text>:
-           null}
+          
 
        </View>
        </LinearGradient>
