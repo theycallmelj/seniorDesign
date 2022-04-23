@@ -82,7 +82,7 @@ array = array.sort(() => Math.random() - 0.5)
     
     //
 
-    fetch('https://ql0hem8ot0.execute-api.us-east-1.amazonaws.com/prod/a', {
+    fetch(`https://ql0hem8ot0.execute-api.us-east-1.amazonaws.com/prod/a?id=${DeviceInfo.getUniqueId()}`, {
       method: 'GET'
    })
    .then((response) => response.json())
