@@ -62,6 +62,22 @@ array = array.sort(() => Math.random() - 0.5)
    }
 
 
+   updateWeights= async(swipe, catergory) =>{
+    
+    //
+
+    fetch(`https://xiw630fi66.execute-api.us-east-1.amazonaws.com/prod?swipe=${swipe}&userid=${DeviceInfo.getUniqueId()}&category=${catergory}`, {
+      method: 'GET'
+   })
+   .then((response) => response.json())
+   .then((responseJson) => {
+
+   }).catch((error) => {
+    console.error(error);
+    });
+  }
+
+
    getMoreArt= () =>{
     
     //
@@ -268,6 +284,7 @@ array = array.sort(() => Math.random() - 0.5)
       if(direction == SWIPE_LEFT && state == 1){
         let deviceId = DeviceInfo.getUniqueId();
         
+        this.updateWeights(0, artwork[this.state.photo]['category']);
         let artist = artwork[this.state.photo]['artist'];
         let category = artwork[this.state.photo]['category'];
         var i = 1;
@@ -291,6 +308,7 @@ array = array.sort(() => Math.random() - 0.5)
 
       }
       else if(direction == SWIPE_RIGHT && state == 1){
+        this.updateWeights(1,artwork[this.state.photo]['category']);
         let deviceId = DeviceInfo.getUniqueId();
 
         let artist = artwork[this.state.photo]['artist'];
