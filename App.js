@@ -65,13 +65,13 @@ array = array.sort(() => Math.random() - 0.5)
    updateWeights= async(swipe, catergory) =>{
     
     //
-
-    fetch(`https://xiw630fi66.execute-api.us-east-1.amazonaws.com/prod?swipe=${swipe}&userid=${DeviceInfo.getUniqueId()}&category=${catergory}`, {
+    //console.log("WEIGHTS", `https://xiw630fi66.execute-api.us-east-1.amazonaws.com/prod?swipe=${swipe}&userid=${DeviceInfo.getUniqueId()}&category=${catergory}`);
+   await fetch(`https://xiw630fi66.execute-api.us-east-1.amazonaws.com/prod?swipe=${swipe}&id=${DeviceInfo.getUniqueId()}&category=${catergory}`, {
       method: 'GET'
    })
    .then((response) => response.json())
    .then((responseJson) => {
-
+    console.log("THIS IS THE UPDATE WEIGHTS", responseJson);
    }).catch((error) => {
     console.error(error);
     });
@@ -259,11 +259,15 @@ array = array.sort(() => Math.random() - 0.5)
     if(this.swipeCounter % 3 == 0){
       this.getMoreArt();
     }
+   
+
+
     //console.log("Is 10 being read", this.getData("ten"));
   
     if( (direction == SWIPE_LEFT  || direction == SWIPE_RIGHT ) && (this.swipeCounter < 10 && this.state.ten != 1)){//new code
       this.setState({photo: this.state.photo+1});
       this.swipeCounter++;
+
       return;
     }
     if(this.swipeCounter == 9){
@@ -284,7 +288,7 @@ array = array.sort(() => Math.random() - 0.5)
       if(direction == SWIPE_LEFT && state == 1){
         let deviceId = DeviceInfo.getUniqueId();
         
-        this.updateWeights(0, artwork[this.state.photo]['category']);
+        
         let artist = artwork[this.state.photo]['artist'];
         let category = artwork[this.state.photo]['category'];
         var i = 1;
@@ -308,7 +312,7 @@ array = array.sort(() => Math.random() - 0.5)
 
       }
       else if(direction == SWIPE_RIGHT && state == 1){
-        this.updateWeights(1,artwork[this.state.photo]['category']);
+        
         let deviceId = DeviceInfo.getUniqueId();
 
         let artist = artwork[this.state.photo]['artist'];
@@ -421,14 +425,17 @@ array = array.sort(() => Math.random() - 0.5)
               
                this.xOffset = event.nativeEvent.contentOffset.x
 
-               console.log("XO", event.nativeEvent)
+               //console.log("XO", event.nativeEvent)
                
                if(this.xOffset >= 200){
                    this.handleSwipe(SWIPE_RIGHT)
+                   this.updateWeights(1, artwork[this.state.photo]['category']);
                    this.scroller.scrollTo({ x: 187.5, y: 0, animated: true })
                }
                if(this.xOffset <= 150){
                  this.handleSwipe(SWIPE_LEFT)
+                 
+                 this.updateWeights(0, artwork[this.state.photo]['category']);
                  this.scroller.scrollTo({ x: 187.5, y: 0, animated: true })
                }
 
