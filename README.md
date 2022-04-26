@@ -1,4 +1,4 @@
-# seniorDesign
+# GWU 2021-2022 Capstone Project: Galleri
 
 
 Dependencies
