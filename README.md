@@ -1,5 +1,7 @@
 # GWU 2021-2022 Capstone Project: Galleri
 
 
-Dependencies
-<PUT DEPENDENCIES AND PROJECT INFO HERE>
+Dependencies:
+[React Native](https://www.npmjs.com/package/react-native)
+
+After React a
