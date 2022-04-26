@@ -587,18 +587,19 @@ array = array.sort(() => Math.random() - 0.5)
 
 
   onboardSwipeRight(){
-    console.log('render2', this.state.onboarding);
+    //console.log('render2', this.state.onboarding);
+    if(this.state.onboarding > 1){
+      this.setState({onboarding:this.state.onboarding-1})
+    }
+    
+  }
+  onboardSwipeLeft(){
+    //console.log('render', this.state.onboarding-1);
     if(this.state.onboarding < 3){
       this.setState({onboarding:this.state.onboarding+1})
     }
     else{
       this.storeData("done" ,"@galleriOnboarding");
-    }
-  }
-  onboardSwipeLeft(){
-    console.log('render', this.state.onboarding-1);
-    if(this.state.onboarding > 1){
-      this.setState({onboarding:this.state.onboarding-1})
     }
   }
 
